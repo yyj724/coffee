@@ -1,0 +1,104 @@
+:root {
+  --espresso: #2b1d16;
+  --roast: #4a3126;
+  --caramel: #c8863b;
+  --caramel-dark: #a96d28;
+  --crema: #f7f0e6;
+  --latte: #e9d9c4;
+  --ink: #2a211c;
+  --muted: #8a7767;
+}
+body {
+  font-family: 'Noto Sans KR', system-ui, sans-serif;
+  background: var(--crema);
+  color: var(--ink);
+}
+h1, h2, h3, h4, .brand-font { font-family: 'Noto Serif KR', 'Noto Sans KR', serif; }
+
+/* 내비게이션 */
+.navbar-coffee {
+  background: rgba(43, 29, 22, .96);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.navbar-coffee .navbar-brand { color: var(--latte); font-weight: 700; letter-spacing: .5px; }
+.navbar-coffee .navbar-brand i { color: var(--caramel); }
+.navbar-coffee .nav-link { color: #d9c7b3; font-weight: 500; }
+.navbar-coffee .nav-link:hover, .navbar-coffee .nav-link.active { color: #fff; }
+.navbar-coffee .navbar-toggler { border-color: rgba(255,255,255,.3); }
+.navbar-coffee .navbar-toggler-icon { filter: invert(1); }
+
+/* 버튼 */
+.btn-caramel { background: var(--caramel); border-color: var(--caramel); color: #fff; font-weight: 600; }
+.btn-caramel:hover { background: var(--caramel-dark); border-color: var(--caramel-dark); color: #fff; }
+.btn-outline-latte { border: 1.5px solid var(--latte); color: var(--latte); font-weight: 600; }
+.btn-outline-latte:hover { background: var(--latte); color: var(--espresso); }
+.btn-outline-roast { border: 1.5px solid var(--roast); color: var(--roast); font-weight: 600; }
+.btn-outline-roast:hover { background: var(--roast); color: #fff; }
+
+/* 히어로 (사진을 public/img/hero.jpg 로 넣으면 배경으로 보여요) */
+.hero {
+  position: relative;
+  color: #fff;
+  padding: 110px 0 120px;
+  background:
+    linear-gradient(115deg, rgba(43,29,22,.93) 0%, rgba(74,49,38,.82) 55%, rgba(200,134,59,.55) 100%),
+    url('/img/hero.jpg') center / cover no-repeat,
+    var(--espresso);
+}
+.hero .eyebrow { color: var(--caramel); font-weight: 700; letter-spacing: 3px; font-size: .85rem; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 700; line-height: 1.25; }
+.hero p.lead { color: #e6d6c4; max-width: 520px; }
+.hero-cup { width: 100%; max-width: 280px; filter: drop-shadow(0 20px 30px rgba(0,0,0,.35)); }
+.steam { animation: rise 3s ease-in-out infinite; transform-origin: center bottom; opacity: .7; }
+.steam.s2 { animation-delay: .8s; }
+.steam.s3 { animation-delay: 1.6s; }
+@keyframes rise { 0% { transform: translateY(8px); opacity: 0; } 50% { opacity: .8; } 100% { transform: translateY(-14px); opacity: 0; } }
+
+/* 통계 띠 */
+.stat-strip { margin-top: -48px; position: relative; z-index: 2; }
+.stat-card {
+  background: #fff; border-radius: 18px; padding: 22px 10px; text-align: center;
+  box-shadow: 0 10px 30px rgba(43,29,22,.12);
+}
+.stat-card .num { font-family: 'Noto Serif KR', serif; font-size: 2rem; font-weight: 700; color: var(--caramel-dark); }
+.stat-card .label { color: var(--muted); font-size: .9rem; }
+
+/* 섹션 */
+.section-title { font-weight: 700; color: var(--espresso); }
+.section-sub { color: var(--muted); }
+.feature-card {
+  background: #fff; border: 0; border-radius: 20px; padding: 28px;
+  box-shadow: 0 6px 22px rgba(43,29,22,.08); height: 100%;
+  transition: transform .2s, box-shadow .2s;
+}
+.feature-card:hover { transform: translateY(-4px); box-shadow: 0 14px 32px rgba(43,29,22,.14); }
+.feature-icon {
+  width: 54px; height: 54px; border-radius: 16px; display: grid; place-items: center;
+  background: linear-gradient(135deg, var(--caramel), #e0a65f); color: #fff; font-size: 1.5rem; margin-bottom: 16px;
+}
+
+/* 레시피 카드 */
+.recipe-card {
+  background: #fff; border: 0; border-radius: 20px; overflow: hidden;
+  box-shadow: 0 6px 22px rgba(43,29,22,.08); height: 100%;
+  transition: transform .2s, box-shadow .2s; color: inherit; text-decoration: none; display: block;
+}
+.recipe-card:hover { transform: translateY(-4px); box-shadow: 0 14px 32px rgba(43,29,22,.14); color: inherit; }
+.recipe-thumb {
+  height: 150px; display: grid; place-items: center; color: rgba(255,255,255,.9); font-size: 2.6rem;
+  background: linear-gradient(135deg, var(--roast), var(--caramel));
+  background-size: cover; background-position: center;
+}
+.recipe-body { padding: 18px 20px 20px; }
+.chip { display: inline-block; background: var(--latte); color: var(--roast); border-radius: 999px; padding: 2px 12px; font-size: .78rem; font-weight: 600; margin-right: 4px; }
+.stars { color: var(--caramel); letter-spacing: 1px; }
+
+/* 폼 카드 */
+.form-card { background: #fff; border: 0; border-radius: 22px; box-shadow: 0 14px 40px rgba(43,29,22,.12); }
+.form-control:focus, .form-select:focus { border-color: var(--caramel); box-shadow: 0 0 0 .2rem rgba(200,134,59,.2); }
+.auth-wrap { min-height: 70vh; display: flex; align-items: center; }
+
+/* 푸터 */
+.site-footer { background: var(--espresso); color: #b9a794; padding: 36px 0; margin-top: 80px; font-size: .9rem; }
+.site-footer a { color: var(--latte); text-decoration: none; }

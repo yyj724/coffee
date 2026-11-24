@@ -1,0 +1,101 @@
+<%- include('partials/header') %>
+
+<section class="hero">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-7">
+        <div class="eyebrow mb-3">HOME BREW LABORATORY</div>
+        <h1 class="mb-3">당신의 한 잔을<br>기록하고, 진단하고, 나누세요.</h1>
+        <p class="lead mb-4">원두와 물의 비율, 온도, 시간, 맛 점수를 남기면 추출 상태를 계산해서 알려줘요. 마음에 드는 레시피는 따라 만들고 결과를 공유해 보세요.</p>
+        <a class="btn btn-caramel btn-lg px-4 me-2" href="/calculator"><i class="bi bi-calculator me-2"></i>추출 계산기</a>
+        <a class="btn btn-outline-latte btn-lg px-4" href="/map"><i class="bi bi-geo-alt me-2"></i>커피 지도</a>
+      </div>
+      <div class="col-lg-5 text-center d-none d-lg-block">
+        <svg class="hero-cup" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
+          <g fill="none" stroke="#f1d9b5" stroke-width="5" stroke-linecap="round">
+            <path class="steam s1" d="M85 70 C75 55 95 45 85 28"/>
+            <path class="steam s2" d="M120 72 C108 54 132 42 120 22"/>
+            <path class="steam s3" d="M155 70 C145 55 165 45 155 28"/>
+          </g>
+          <path d="M50 95 H190 V150 C190 190 160 215 120 215 C80 215 50 190 50 150 Z" fill="#f7f0e6"/>
+          <path d="M190 112 H208 C226 112 226 168 200 168 H187" fill="none" stroke="#f7f0e6" stroke-width="12" stroke-linecap="round"/>
+          <ellipse cx="120" cy="95" rx="70" ry="12" fill="#c8863b"/>
+          <ellipse cx="120" cy="95" rx="58" ry="8" fill="#4a3126"/>
+          <ellipse cx="120" cy="228" rx="85" ry="7" fill="rgba(0,0,0,.25)"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="container stat-strip">
+  <div class="row g-3">
+    <div class="col-4"><div class="stat-card"><div class="num"><%= stats.recipes %></div><div class="label">공유된 레시피</div></div></div>
+    <div class="col-4"><div class="stat-card"><div class="num"><%= stats.users %></div><div class="label">연구원(회원)</div></div></div>
+    <div class="col-4"><div class="stat-card"><div class="num"><%= stats.cafes %></div><div class="label">지도 속 카페</div></div></div>
+  </div>
+</section>
+
+<section class="container mt-5 pt-4">
+  <div class="text-center mb-4">
+    <h2 class="section-title">이런 걸 할 수 있어요</h2>
+    <p class="section-sub">기록에서 끝나지 않고, 계산하고, 비교하고, 탐험해요.</p>
+  </div>
+  <div class="row g-4">
+    <div class="col-md-4"><div class="feature-card">
+      <div class="feature-icon"><i class="bi bi-calculator"></i></div>
+      <h5 class="fw-bold">추출 계산·진단</h5>
+      <p class="text-muted mb-0">추출 비율과 수율을 자동으로 계산하고, 맛 점수로 과소·과다 추출을 진단해 개선 방법을 제안해요.</p>
+    </div></div>
+    <div class="col-md-4"><div class="feature-card">
+      <div class="feature-icon"><i class="bi bi-diagram-2"></i></div>
+      <h5 class="fw-bold">따라 만들기·재현 평가</h5>
+      <p class="text-muted mb-0">다른 사람의 레시피를 복제해 내 입맛대로 바꾸고, 재현 결과로 레시피의 신뢰도를 쌓아요.</p>
+    </div></div>
+    <div class="col-md-4"><div class="feature-card">
+      <div class="feature-icon"><i class="bi bi-geo-alt"></i></div>
+      <h5 class="fw-bold">세계 커피 지도</h5>
+      <p class="text-muted mb-0">세계의 유명한 커피 전문점을 지도에서 찾아보고, 역사와 대표 메뉴 이야기를 읽어요.</p>
+    </div></div>
+  </div>
+</section>
+
+<section class="container mt-5 pt-4">
+  <div class="d-flex justify-content-between align-items-end mb-3">
+    <div>
+      <h2 class="section-title mb-1">새로 올라온 레시피</h2>
+      <div class="section-sub">방금 공유된 추출 기록이에요.</div>
+    </div>
+    <a class="btn btn-outline-roast btn-sm" href="/recipes">전체 보기</a>
+  </div>
+  <% if (recipes.length === 0) { %>
+    <div class="form-card p-5 text-center">
+      <div class="display-5 mb-2">☕</div>
+      <p class="text-muted mb-3">아직 공유된 레시피가 없어요. 첫 번째 레시피를 남겨 보세요!</p>
+      <a class="btn btn-caramel" href="/recipes/new">레시피 쓰기</a>
+    </div>
+  <% } else { %>
+    <div class="row g-4">
+      <% recipes.forEach(function(r) { %>
+        <div class="col-md-6 col-lg-4">
+          <a class="recipe-card" href="/recipes/<%= r.id %>">
+            <div class="recipe-thumb" <% if (r.image_path) { %>style="background-image:url('<%= r.image_path %>')"<% } %>>
+              <% if (!r.image_path) { %><i class="bi bi-cup-hot"></i><% } %>
+            </div>
+            <div class="recipe-body">
+              <div class="mb-2"><span class="chip"><%= r.method_name %></span><span class="chip"><%= r.bean_name %></span></div>
+              <h5 class="fw-bold mb-1"><%= r.title %></h5>
+              <div class="text-muted small mb-2">원두 <%= r.dose_g %>g · 물 <%= r.water_g %>g · 1:<%= (r.water_g / r.dose_g).toFixed(1) %></div>
+              <div class="d-flex justify-content-between small">
+                <span class="stars"><% for (let i = 1; i <= 5; i++) { %><i class="bi bi-star<%= i <= r.overall ? '-fill' : '' %>"></i><% } %></span>
+                <span class="text-muted"><%= r.nickname %> · ♥ <%= r.like_count %></span>
+              </div>
+            </div>
+          </a>
+        </div>
+      <% }); %>
+    </div>
+  <% } %>
+</section>
+
+<%- include('partials/footer') %>

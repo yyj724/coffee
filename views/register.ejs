@@ -1,0 +1,30 @@
+<%- include('partials/header') %>
+<div class="container auth-wrap">
+  <div class="row justify-content-center w-100">
+    <div class="col-md-7 col-lg-5">
+      <div class="form-card p-4 p-md-5">
+        <div class="text-center mb-4">
+          <div class="display-6">☕</div>
+          <h3 class="fw-bold mt-2">회원가입</h3>
+          <div class="text-muted small">연구원 등록을 해 볼까요?</div>
+        </div>
+        <% if (error) { %><div class="alert alert-danger py-2"><%= error %></div><% } %>
+        <form method="post" action="/register">
+          <div class="mb-3"><label class="form-label">아이디 <span class="text-muted small">(영문·숫자·밑줄 4~20자)</span></label>
+            <input class="form-control" name="username" value="<%= form.username || '' %>" required></div>
+          <div class="mb-3"><label class="form-label">닉네임</label>
+            <input class="form-control" name="nickname" value="<%= form.nickname || '' %>" required></div>
+          <div class="mb-3"><label class="form-label">이메일</label>
+            <input type="email" class="form-control" name="email" value="<%= form.email || '' %>" required></div>
+          <div class="mb-3"><label class="form-label">비밀번호 <span class="text-muted small">(6자 이상)</span></label>
+            <input type="password" class="form-control" name="password" required></div>
+          <div class="mb-4"><label class="form-label">비밀번호 확인</label>
+            <input type="password" class="form-control" name="password2" required></div>
+          <button class="btn btn-caramel btn-lg w-100">가입하기</button>
+        </form>
+        <div class="text-center mt-3 small text-muted">이미 계정이 있나요? <a href="/login">로그인</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('partials/footer') %>
