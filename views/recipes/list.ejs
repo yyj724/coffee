@@ -1,0 +1,68 @@
+<%- include('../partials/header') %>
+<% const qs = function(p) {
+  const o = Object.assign({}, query, { page: p });
+  Object.keys(o).forEach(function(k) { if (o[k] === '' || o[k] === undefined) delete o[k]; });
+  return '?' + new URLSearchParams(o).toString();
+}; %>
+<div class="container py-5">
+  <div class="d-flex justify-content-between align-items-end mb-4">
+    <div>
+      <h2 class="section-title mb-1">레시피</h2>
+      <div class="section-sub">총 <%= total %>개의 추출 기록</div>
+    </div>
+    <% if (user) { %><a class="btn btn-caramel" href="/recipes/new"><i class="bi bi-plus-lg me-1"></i>레시피 쓰기</a><% } %>
+  </div>
+
+  <form class="form-card p-3 mb-4" method="get">
+    <div class="row g-2">
+      <div class="col-lg-4"><input class="form-control" name="q" value="<%= query.q %>" placeholder="제목이나 메모로 검색"></div>
+      <div class="col-6 col-lg-2">
+        <select class="form-select" name="method"><option value="">모든 방식</option>
+          <% methods.forEach(function(m) { %><option value="<%= m.id %>" <%= String(query.method) === String(m.id) ? 'selected' : '' %>><%= m.name %></option><% }); %>
+        </select></div>
+      <div class="col-6 col-lg-3">
+        <select class="form-select" name="bean"><option value="">모든 원두</option>
+          <% beans.forEach(function(b) { %><option value="<%= b.id %>" <%= String(query.bean) === String(b.id) ? 'selected' : '' %>><%= b.name %></option><% }); %>
+        </select></div>
+      <div class="col-6 col-lg-2">
+        <select class="form-select" name="sort">
+          <option value="latest" <%= query.sort === 'latest' ? 'selected' : '' %>>최신순</option>
+          <option value="popular" <%= query.sort === 'popular' ? 'selected' : '' %>>좋아요순</option>
+          <option value="rating" <%= query.sort === 'rating' ? 'selected' : '' %>>평점순</option>
+        </select></div>
+      <div class="col-6 col-lg-1 d-grid"><button class="btn btn-caramel"><i class="bi bi-search"></i></button></div>
+    </div>
+  </form>
+
+  <% if (recipes.length === 0) { %>
+    <div class="form-card p-5 text-center"><div class="display-5 mb-2">☕</div><p class="text-muted mb-0">조건에 맞는 레시피가 없어요.</p></div>
+  <% } else { %>
+    <div class="row g-4">
+      <% recipes.forEach(function(r) { %>
+        <div class="col-md-6 col-lg-4">
+          <a class="recipe-card" href="/recipes/<%= r.id %>">
+            <div class="recipe-thumb" <% if (r.image_path) { %>style="background-image:url('<%= r.image_path %>')"<% } %>>
+              <% if (!r.image_path) { %><i class="bi bi-cup-hot"></i><% } %>
+            </div>
+            <div class="recipe-body">
+              <div class="mb-2"><span class="chip"><%= r.method_name %></span><span class="chip"><%= r.bean_name %></span>
+                <% if (!r.is_public) { %><span class="chip">비공개</span><% } %></div>
+              <h5 class="fw-bold mb-1"><%= r.title %></h5>
+              <div class="text-muted small mb-2">원두 <%= r.dose_g %>g · 물 <%= r.water_g %>g · 1:<%= (r.water_g / r.dose_g).toFixed(1) %></div>
+              <div class="d-flex justify-content-between small">
+                <span class="stars"><% for (let i = 1; i <= 5; i++) { %><i class="bi bi-star<%= i <= r.overall ? '-fill' : '' %>"></i><% } %></span>
+                <span class="text-muted"><%= r.nickname %> · ♥ <%= r.like_count %></span>
+              </div>
+            </div>
+          </a>
+        </div>
+      <% }); %>
+    </div>
+    <nav class="mt-4"><ul class="pagination justify-content-center">
+      <% for (let i = 1; i <= totalPages; i++) { %>
+        <li class="page-item <%= i === page ? 'active' : '' %>"><a class="page-link" href="<%= qs(i) %>"><%= i %></a></li>
+      <% } %>
+    </ul></nav>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

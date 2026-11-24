@@ -1,0 +1,111 @@
+<%- include('../partials/header') %>
+<% const roast = { light: '라이트', medium: '미디엄', dark: '다크' };
+   const tasteLabels = [['sour','산미'],['sweet','단맛'],['bitter','쓴맛'],['body','바디'],['aroma','향']];
+   const stateIcon = { ok: 'bi-check-circle-fill text-success', below: 'bi-arrow-down-circle-fill text-warning', above: 'bi-arrow-up-circle-fill text-danger' };
+   const tone = { under: 'warning', over: 'danger', balanced: 'success', mixed: 'secondary' }[diag.status]; %>
+<div class="container py-5">
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <div class="detail-banner mb-4" <% if (recipe.image_path) { %>style="background-image:url('<%= recipe.image_path %>')"<% } %>>
+        <% if (!recipe.image_path) { %><i class="bi bi-cup-hot"></i><% } %>
+      </div>
+      <div class="mb-2">
+        <span class="chip"><%= recipe.method_name %></span>
+        <span class="chip"><%= recipe.bean_name %></span>
+        <span class="chip"><%= recipe.bean_origin %> · <%= roast[recipe.roast_level] %></span>
+        <% if (!recipe.is_public) { %><span class="chip">비공개</span><% } %>
+      </div>
+      <h2 class="fw-bold mb-1"><%= recipe.title %></h2>
+      <div class="text-muted small mb-3">
+        <%= recipe.nickname %> · <%= new Date(recipe.created_at).toLocaleDateString('ko-KR') %> · 조회 <%= recipe.views %>
+        <% if (recipe.forked_from && recipe.origin_title) { %> · 원본: <a href="/recipes/<%= recipe.forked_from %>"><%= recipe.origin_title %></a><% } %>
+      </div>
+
+      <div class="row g-2 mb-4">
+        <div class="col-4 col-md-3"><div class="metric"><div class="v"><%= recipe.dose_g %>g</div><div class="k">원두</div></div></div>
+        <div class="col-4 col-md-3"><div class="metric"><div class="v"><%= recipe.water_g %>g</div><div class="k">물</div></div></div>
+        <div class="col-4 col-md-3"><div class="metric"><div class="v">1:<%= diag.ratio %></div><div class="k">추출 비율</div></div></div>
+        <div class="col-4 col-md-3"><div class="metric"><div class="v"><%= recipe.water_temp_c !== null ? recipe.water_temp_c + '°C' : '-' %></div><div class="k">물 온도</div></div></div>
+        <div class="col-4 col-md-3"><div class="metric"><div class="v"><%= recipe.grind_level %>/10</div><div class="k">분쇄도</div></div></div>
+        <div class="col-4 col-md-3"><div class="metric"><div class="v"><%= fmtTime(recipe.brew_time_sec) %></div><div class="k">추출 시간</div></div></div>
+        <div class="col-4 col-md-3"><div class="metric"><div class="v"><%= recipe.tds_pct ? recipe.tds_pct + '%' : '-' %></div><div class="k">TDS</div></div></div>
+        <div class="col-4 col-md-3"><div class="metric"><div class="v"><%= diag.ey !== null ? diag.ey + '%' : '-' %></div><div class="k">추출 수율</div></div></div>
+      </div>
+
+      <div class="form-card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold mb-0">맛 프로필</h5>
+          <span class="stars fs-5"><% for (let i = 1; i <= 5; i++) { %><i class="bi bi-star<%= i <= recipe.overall ? '-fill' : '' %>"></i><% } %></span>
+        </div>
+        <% tasteLabels.forEach(function(t) { %>
+          <div class="taste-row"><span class="name"><%= t[1] %></span>
+            <div class="taste-track"><div class="taste-fill" style="width:<%= recipe[t[0]] * 20 %>%"></div></div>
+            <span class="small text-muted"><%= recipe[t[0]] %></span></div>
+        <% }); %>
+        <% if (recipe.note) { %><hr><div style="white-space:pre-wrap"><%= recipe.note %></div><% } %>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2 mb-4">
+        <form method="post" action="/recipes/<%= recipe.id %>/like">
+          <button class="btn <%= liked ? 'btn-danger' : 'btn-outline-danger' %>" <%= user ? '' : 'disabled' %>><i class="bi bi-heart-fill me-1"></i>좋아요 <%= likeCount %></button>
+        </form>
+        <% if (canEdit) { %>
+          <a class="btn btn-outline-roast" href="/recipes/<%= recipe.id %>/edit"><i class="bi bi-pencil me-1"></i>수정</a>
+          <form method="post" action="/recipes/<%= recipe.id %>/delete" onsubmit="return confirm('이 레시피를 삭제할까요?')">
+            <button class="btn btn-outline-dark"><i class="bi bi-trash me-1"></i>삭제</button></form>
+        <% } %>
+        <a class="btn btn-outline-roast ms-auto" href="/recipes">목록</a>
+      </div>
+
+      <%- include('_social') %>
+
+      <div class="form-card p-4" id="comments">
+        <h5 class="fw-bold mb-3">댓글 <%= comments.length %></h5>
+        <% comments.forEach(function(c) { %>
+          <div class="border-bottom py-2">
+            <div class="small text-muted"><%= c.nickname %> · <%= new Date(c.created_at).toLocaleString('ko-KR') %>
+              <% if (user && (user.id === c.user_id || user.role === 'admin')) { %>
+                <form class="d-inline" method="post" action="/recipes/<%= recipe.id %>/comments/<%= c.id %>/delete">
+                  <button class="btn btn-link btn-sm text-danger p-0 ms-2">삭제</button></form>
+              <% } %></div>
+            <div style="white-space:pre-wrap"><%= c.content %></div>
+          </div>
+        <% }); %>
+        <% if (user) { %>
+          <form class="mt-3" method="post" action="/recipes/<%= recipe.id %>/comments">
+            <textarea class="form-control mb-2" name="content" rows="2" placeholder="댓글을 입력하세요" required></textarea>
+            <button class="btn btn-caramel btn-sm">댓글 등록</button>
+          </form>
+        <% } else { %><p class="text-muted mt-3 mb-0"><a href="/login">로그인</a>하면 댓글을 쓸 수 있어요.</p><% } %>
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="diag-card bg-white mb-4">
+        <div class="diag-head <%= diag.status %>">
+          <div class="small opacity-75">추출 진단</div>
+          <div class="fs-4 fw-bold"><i class="bi <%= diag.icon %> me-2"></i><%= diag.label %></div>
+        </div>
+        <div class="p-4">
+          <% if (diag.reasons.length) { %>
+            <div class="fw-bold small text-muted mb-1">근거</div>
+            <ul class="mb-3 ps-3"><% diag.reasons.forEach(function(r) { %><li><%= r %></li><% }); %></ul>
+          <% } %>
+          <div class="fw-bold small text-muted mb-1">이렇게 해 보세요</div>
+          <ul class="mb-3 ps-3"><% diag.tips.forEach(function(t) { %><li><%= t %></li><% }); %></ul>
+          <div class="fw-bold small text-muted mb-1">기준 점검</div>
+          <% diag.checks.forEach(function(c) { %>
+            <div class="check-row"><span><i class="bi <%= stateIcon[c.state] %> me-1"></i><%= c.label %></span>
+              <span><strong><%= c.value %></strong> <span class="text-muted small">(<%= c.range %>)</span></span></div>
+          <% }); %>
+          <div class="small text-muted mt-3">※ 맛은 주관적이라 이 진단은 일반적으로 알려진 기준을 바탕으로 한 참고용 가이드예요.</div>
+        </div>
+      </div>
+      <% if (recipe.tip) { %>
+        <div class="form-card p-4"><div class="fw-bold mb-1"><i class="bi bi-lightbulb me-1 text-warning"></i><%= recipe.method_name %> 팁</div>
+          <div class="text-muted"><%= recipe.tip %></div></div>
+      <% } %>
+    </div>
+  </div>
+</div>
+<%- include('../partials/footer') %>

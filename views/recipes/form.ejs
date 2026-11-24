@@ -1,0 +1,87 @@
+<%- include('../partials/header') %>
+<% const v = recipe || {};
+   const isEdit = !!v.id;
+   const bmin = v.brew_min !== undefined ? v.brew_min : (v.brew_time_sec ? Math.floor(v.brew_time_sec / 60) : 2);
+   const bsec = v.brew_sec !== undefined ? v.brew_sec : (v.brew_time_sec ? v.brew_time_sec % 60 : 30);
+   const pub = !recipe || v.is_public === 1 || v.is_public === true || v.is_public === 'on'; %>
+<div class="container py-5" style="max-width:860px">
+  <h2 class="section-title mb-1"><%= isEdit ? '레시피 수정' : '새 레시피 기록' %></h2>
+  <p class="section-sub mb-4">값을 입력하면 상세 화면에서 비율·수율을 계산하고 추출 상태를 진단해 줘요.</p>
+  <% if (error) { %><div class="alert alert-danger"><%= error %></div><% } %>
+
+  <form method="post" enctype="multipart/form-data" action="<%= isEdit ? '/recipes/' + v.id + '/edit' : '/recipes' %>">
+    <div class="form-card p-4 mb-4">
+      <h5 class="fw-bold mb-3">1. 기본 정보</h5>
+      <div class="row g-3">
+        <div class="col-12"><label class="form-label">제목</label>
+          <input class="form-control" name="title" value="<%= v.title || '' %>" placeholder="예: 산미가 또렷한 예가체프 핸드드립" required></div>
+        <div class="col-md-6"><label class="form-label">원두</label>
+          <select class="form-select" name="bean_id" required><option value="">선택</option>
+            <% beans.forEach(function(b) { %><option value="<%= b.id %>" <%= String(v.bean_id) === String(b.id) ? 'selected' : '' %>><%= b.name %> (<%= b.origin %>)</option><% }); %>
+          </select></div>
+        <div class="col-md-6"><label class="form-label">추출 방식</label>
+          <select class="form-select" name="method_id" required><option value="">선택</option>
+            <% methods.forEach(function(m) { %><option value="<%= m.id %>" <%= String(v.method_id) === String(m.id) ? 'selected' : '' %>><%= m.name %></option><% }); %>
+          </select></div>
+      </div>
+    </div>
+
+    <div class="form-card p-4 mb-4">
+      <h5 class="fw-bold mb-3">2. 추출 조건</h5>
+      <div class="row g-3">
+        <div class="col-6 col-md-3"><label class="form-label">원두량 (g)</label>
+          <input type="number" step="0.1" min="0.1" class="form-control" name="dose_g" value="<%= v.dose_g || '' %>" required></div>
+        <div class="col-6 col-md-3"><label class="form-label">물량 (g)</label>
+          <input type="number" step="0.1" min="1" class="form-control" name="water_g" value="<%= v.water_g || '' %>" required></div>
+        <div class="col-6 col-md-3"><label class="form-label">물 온도 (°C)</label>
+          <input type="number" min="0" max="100" class="form-control" name="water_temp_c" value="<%= v.water_temp_c !== undefined && v.water_temp_c !== null ? v.water_temp_c : '' %>"></div>
+        <div class="col-6 col-md-3"><label class="form-label">추출 시간</label>
+          <div class="input-group">
+            <input type="number" min="0" class="form-control" name="brew_min" value="<%= bmin %>"><span class="input-group-text">분</span>
+            <input type="number" min="0" max="59" class="form-control" name="brew_sec" value="<%= bsec %>"><span class="input-group-text">초</span>
+          </div></div>
+        <div class="col-12">
+          <label class="form-label d-flex justify-content-between"><span>분쇄도 <span class="text-muted small">(1 매우 곱게 ~ 10 매우 굵게)</span></span><output id="o_grind"><%= v.grind_level || 5 %></output></label>
+          <input type="range" class="form-range" min="1" max="10" name="grind_level" value="<%= v.grind_level || 5 %>" oninput="document.getElementById('o_grind').textContent=this.value">
+        </div>
+        <div class="col-md-6"><label class="form-label">TDS (%) <span class="text-muted small">선택 · 측정기가 있을 때</span></label>
+          <input type="number" step="0.01" min="0" class="form-control" name="tds_pct" value="<%= v.tds_pct || '' %>"></div>
+        <div class="col-md-6"><label class="form-label">추출액 무게 (g) <span class="text-muted small">선택 · 수율 계산용</span></label>
+          <input type="number" step="0.1" min="0" class="form-control" name="output_g" value="<%= v.output_g || '' %>"></div>
+      </div>
+    </div>
+
+    <div class="form-card p-4 mb-4">
+      <h5 class="fw-bold mb-3">3. 맛 평가 <span class="text-muted small fw-normal">1 약함 ~ 5 강함</span></h5>
+      <div class="row g-3">
+        <% [['sour','산미'],['sweet','단맛'],['bitter','쓴맛'],['body','바디'],['aroma','향']].forEach(function(t) { const val = v[t[0]] || 3; %>
+          <div class="col-md-6">
+            <label class="form-label d-flex justify-content-between"><span><%= t[1] %></span><output id="o_<%= t[0] %>"><%= val %></output></label>
+            <input type="range" class="form-range" min="1" max="5" name="<%= t[0] %>" value="<%= val %>" oninput="document.getElementById('o_<%= t[0] %>').textContent=this.value">
+          </div>
+        <% }); %>
+        <div class="col-md-6">
+          <label class="form-label d-flex justify-content-between"><span class="fw-bold">종합 평점</span><output id="o_overall"><%= v.overall || 3 %></output></label>
+          <input type="range" class="form-range" min="1" max="5" name="overall" value="<%= v.overall || 3 %>" oninput="document.getElementById('o_overall').textContent=this.value">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card p-4 mb-4">
+      <h5 class="fw-bold mb-3">4. 메모와 사진</h5>
+      <div class="mb-3"><textarea class="form-control" name="note" rows="4" placeholder="뜸 들이기, 물줄기, 느낀 점 등을 자유롭게 적어 보세요"><%= v.note || '' %></textarea></div>
+      <div class="mb-3"><label class="form-label">사진 <span class="text-muted small">(JPG·PNG·WEBP, 3MB 이하)</span></label>
+        <input type="file" class="form-control" name="image" accept="image/jpeg,image/png,image/webp">
+        <% if (isEdit && v.image_path) { %>
+          <div class="form-check mt-2"><input class="form-check-input" type="checkbox" name="remove_image" id="rm"><label class="form-check-label" for="rm">현재 사진 삭제</label></div>
+        <% } %></div>
+      <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="is_public" id="pub" <%= pub ? 'checked' : '' %>><label class="form-check-label" for="pub">다른 사람에게 공개</label></div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button class="btn btn-caramel btn-lg px-5"><%= isEdit ? '수정 저장' : '레시피 저장' %></button>
+      <a class="btn btn-outline-roast btn-lg" href="<%= isEdit ? '/recipes/' + v.id : '/recipes' %>">취소</a>
+    </div>
+  </form>
+</div>
+<%- include('../partials/footer') %>

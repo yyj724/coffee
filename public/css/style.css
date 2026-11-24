@@ -102,3 +102,27 @@ h1, h2, h3, h4, .brand-font { font-family: 'Noto Serif KR', 'Noto Sans KR', seri
 /* 푸터 */
 .site-footer { background: var(--espresso); color: #b9a794; padding: 36px 0; margin-top: 80px; font-size: .9rem; }
 .site-footer a { color: var(--latte); text-decoration: none; }
+
+/* 레시피 상세 */
+.detail-banner {
+  height: 260px; border-radius: 22px; display: grid; place-items: center; color: rgba(255,255,255,.85); font-size: 4rem;
+  background: linear-gradient(135deg, var(--roast), var(--caramel)); background-size: cover; background-position: center;
+}
+.metric { background: #fff; border-radius: 14px; padding: 12px 10px; text-align: center; box-shadow: 0 4px 14px rgba(43,29,22,.07); }
+.metric .v { font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: 1.1rem; color: var(--roast); }
+.metric .k { font-size: .75rem; color: var(--muted); }
+.taste-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.taste-row .name { width: 40px; font-size: .9rem; color: var(--muted); }
+.taste-track { flex: 1; height: 10px; background: var(--latte); border-radius: 999px; overflow: hidden; }
+.taste-fill { height: 100%; background: linear-gradient(90deg, var(--caramel), #e0a65f); border-radius: 999px; }
+.diag-card { border-radius: 20px; box-shadow: 0 10px 30px rgba(43,29,22,.12); overflow: hidden; }
+.diag-head { padding: 18px 22px; color: #fff; }
+.diag-head.under { background: #d98a1f; }
+.diag-head.over { background: #b5482f; }
+.diag-head.balanced { background: #4f8a5b; }
+.diag-head.mixed { background: #7a6a5c; }
+.check-row { display: flex; justify-content: space-between; font-size: .9rem; padding: 7px 0; border-bottom: 1px dashed var(--latte); }
+
+/* 신뢰도 */
+.trust-card { border-left: 6px solid var(--caramel); }
+.text-caramel { color: var(--caramel-dark); }

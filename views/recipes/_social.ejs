@@ -1,0 +1,73 @@
+<% const canTry = user && user.id !== recipe.user_id && recipe.is_public; %>
+<div class="form-card p-4 mb-4 trust-card">
+  <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+    <div>
+      <div class="small text-muted">재현 신뢰도</div>
+      <% if (trust.n === 0) { %>
+        <div class="fs-4 fw-bold">검증 전</div>
+        <div class="text-muted small">아직 따라 만들어 본 사람이 없어요.</div>
+      <% } else { %>
+        <div class="fs-2 fw-bold text-caramel"><%= trust.score %> <span class="fs-6 text-muted">/ 5</span></div>
+        <div class="fw-bold"><%= trust.grade %></div>
+        <div class="small text-muted">재현 <%= trust.n %>명 · 평균 <%= trust.avg %>점 · 맛 재현율 <%= trust.match %>%</div>
+      <% } %>
+    </div>
+    <div class="text-end">
+      <div class="small text-muted mb-2">갈라져 나온 레시피 <strong><%= children.length %></strong>개</div>
+      <% if (canTry) { %>
+        <form method="post" action="/recipes/<%= recipe.id %>/fork">
+          <button class="btn btn-caramel"><i class="bi bi-diagram-2 me-1"></i>따라 만들기</button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+  <div class="small text-muted mt-3">점수는 재현 평점 평균을 재현한 사람 수로 보정한 값이에요(적을 땐 3점에 가깝게). 맛 재현율은 원본과 재현자의 산미·쓴맛 점수가 얼마나 가까운지예요.</div>
+</div>
+
+<div class="form-card p-4 mb-4" id="trials">
+  <h5 class="fw-bold mb-3">재현 결과 <%= trials.length %></h5>
+  <% if (trials.length === 0) { %><p class="text-muted">첫 번째로 재현해 보고 결과를 남겨 주세요.</p><% } %>
+  <% trials.forEach(function(t) { %>
+    <div class="border-bottom py-2">
+      <div class="d-flex justify-content-between small text-muted">
+        <span><%= t.nickname %> · <%= new Date(t.created_at).toLocaleDateString('ko-KR') %></span>
+        <span class="stars"><% for (let i = 1; i <= 5; i++) { %><i class="bi bi-star<%= i <= t.overall ? '-fill' : '' %>"></i><% } %></span>
+      </div>
+      <div class="small">산미 <%= t.sour %> · 쓴맛 <%= t.bitter %></div>
+      <% if (t.note) { %><div style="white-space:pre-wrap"><%= t.note %></div><% } %>
+      <% if (user && user.id === t.user_id) { %>
+        <form method="post" action="/recipes/<%= recipe.id %>/trial/delete" class="mt-1">
+          <button class="btn btn-link btn-sm text-danger p-0">내 결과 삭제</button></form>
+      <% } %>
+    </div>
+  <% }); %>
+
+  <% if (canTry) { %>
+    <form class="mt-3" method="post" action="/recipes/<%= recipe.id %>/trial">
+      <div class="fw-bold mb-2"><%= myTrial ? '내 재현 결과 수정' : '내 재현 결과 남기기' %></div>
+      <div class="row g-3">
+        <% [['overall','종합 평점'],['sour','내가 느낀 산미'],['bitter','내가 느낀 쓴맛']].forEach(function(t) { const val = myTrial ? myTrial[t[0]] : 3; %>
+          <div class="col-md-4">
+            <label class="form-label d-flex justify-content-between small"><span><%= t[1] %></span><output id="t_<%= t[0] %>"><%= val %></output></label>
+            <input type="range" class="form-range" min="1" max="5" name="<%= t[0] %>" value="<%= val %>" oninput="document.getElementById('t_<%= t[0] %>').textContent=this.value">
+          </div>
+        <% }); %>
+        <div class="col-12"><input class="form-control" name="note" maxlength="500" placeholder="어땠나요? (선택)" value="<%= myTrial && myTrial.note ? myTrial.note : '' %>"></div>
+        <div class="col-12"><button class="btn btn-outline-roast btn-sm">결과 저장</button></div>
+      </div>
+    </form>
+  <% } else if (!user) { %>
+    <p class="text-muted small mb-0 mt-2"><a href="/login">로그인</a>하면 재현 결과를 남길 수 있어요.</p>
+  <% } else if (user.id === recipe.user_id) { %>
+    <p class="text-muted small mb-0 mt-2">내 레시피는 직접 평가할 수 없어요. 다른 사람이 따라 만들면 여기에 결과가 쌓여요.</p>
+  <% } %>
+</div>
+
+<% if (children.length) { %>
+<div class="form-card p-4 mb-4">
+  <h5 class="fw-bold mb-3">이 레시피에서 갈라져 나온 레시피</h5>
+  <% children.forEach(function(c) { %>
+    <div class="py-1"><a href="/recipes/<%= c.id %>"><%= c.title %></a> <span class="text-muted small">· <%= c.nickname %></span></div>
+  <% }); %>
+</div>
+<% } %>
