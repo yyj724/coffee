@@ -126,3 +126,15 @@ h1, h2, h3, h4, .brand-font { font-family: 'Noto Serif KR', 'Noto Sans KR', seri
 /* 신뢰도 */
 .trust-card { border-left: 6px solid var(--caramel); }
 .text-caramel { color: var(--caramel-dark); }
+
+/* 커피 지도 */
+.map-box { height: 480px; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(43,29,22,.12); }
+.map-list { max-height: 520px; overflow-y: auto; border-radius: 16px; }
+.map-list .list-group-item.active { background: var(--latte); color: var(--ink); border-color: var(--latte); }
+.cafe-pin-wrap { background: transparent; border: 0; }
+.cafe-pin {
+  width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--caramel); color: #fff; border: 3px solid #fff;
+  box-shadow: 0 4px 12px rgba(43,29,22,.35); transition: transform .15s, background .15s;
+}
+.cafe-pin.active { background: var(--espresso); transform: scale(1.25); }

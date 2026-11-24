@@ -27,6 +27,7 @@ app.use('/', require('./routes/home'));
 app.use('/recipes', require('./routes/recipes'));
 app.use('/recipes', require('./routes/social'));
 app.use('/calculator', require('./routes/calculator'));
+app.use('/map', require('./routes/map'));
 app.use('/', require('./routes/auth'));
 
 app.use((req, res) => res.status(404).render('404', { title: '페이지를 찾을 수 없어요' }));

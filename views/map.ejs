@@ -1,0 +1,139 @@
+<%- include('partials/header') %>
+<div class="container py-5">
+  <div class="mb-4">
+    <h2 class="section-title mb-1">세계 커피 지도</h2>
+    <div class="section-sub">역사와 이야기가 있는 커피 명소 <%= cafes.length %>곳이에요. 핀이나 목록을 눌러 보세요.</div>
+  </div>
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <div class="form-card p-3 mb-3">
+        <input id="q" class="form-control mb-2" placeholder="이름, 도시, 나라로 검색">
+        <div id="cats" class="d-flex flex-wrap gap-1"></div>
+      </div>
+      <div id="list" class="list-group map-list shadow-sm"></div>
+    </div>
+    <div class="col-lg-8">
+      <div id="map" class="map-box mb-3"></div>
+      <div id="detail" class="form-card p-4"><div class="text-muted">지도의 핀이나 왼쪽 목록에서 카페를 골라 보세요.</div></div>
+    </div>
+  </div>
+</div>
+
+<script id="cafe-data" type="application/json"><%- JSON.stringify(cafes).replace(/</g, '\\u003c') %></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function () {
+  var cafes = JSON.parse(document.getElementById('cafe-data').textContent).map(function (c) {
+    c.lat = Number(c.lat); c.lng = Number(c.lng); return c;
+  });
+  var thisYear = new Date().getFullYear();
+  var state = { q: '', cat: '', selected: null };
+  var listEl = document.getElementById('list');
+  var detailEl = document.getElementById('detail');
+  var catsEl = document.getElementById('cats');
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (ch) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+    });
+  }
+
+  var map = L.map('map', { worldCopyJump: true }).setView([30, 10], 2);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18, attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  var icon = L.divIcon({
+    className: 'cafe-pin-wrap',
+    html: '<div class="cafe-pin"><i class="bi bi-cup-hot-fill"></i></div>',
+    iconSize: [36, 36], iconAnchor: [18, 18]
+  });
+  var markers = {};
+  cafes.forEach(function (c) {
+    var m = L.marker([c.lat, c.lng], { icon: icon, title: c.name });
+    m.bindTooltip(c.name);
+    m.on('click', function () { select(c.id, false); });
+    markers[c.id] = m;
+  });
+
+  function visible() {
+    var q = state.q.trim().toLowerCase();
+    return cafes.filter(function (c) {
+      if (state.cat && c.category !== state.cat) return false;
+      if (!q) return true;
+      return [c.name, c.city, c.country, c.signature].join(' ').toLowerCase().indexOf(q) !== -1;
+    });
+  }
+
+  function paintActive() {
+    Object.keys(markers).forEach(function (id) {
+      var el = markers[id].getElement && markers[id].getElement();
+      if (el) el.querySelector('.cafe-pin').classList.toggle('active', Number(id) === state.selected);
+    });
+    listEl.querySelectorAll('[data-id]').forEach(function (b) {
+      b.classList.toggle('active', Number(b.getAttribute('data-id')) === state.selected);
+    });
+  }
+
+  function render(fit) {
+    var list = visible();
+    Object.keys(markers).forEach(function (id) { map.removeLayer(markers[id]); });
+    list.forEach(function (c) { markers[c.id].addTo(map); });
+    listEl.innerHTML = list.length ? list.map(function (c) {
+      return '<button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-start" data-id="' + c.id + '">' +
+        '<div><div class="fw-bold">' + esc(c.name) + '</div><div class="small text-muted">' + esc(c.city) + ', ' + esc(c.country) + '</div></div>' +
+        (c.opened_year ? '<span class="chip">' + c.opened_year + '</span>' : '') + '</button>';
+    }).join('') : '<div class="list-group-item text-muted">결과가 없어요.</div>';
+    if (fit && list.length) {
+      map.fitBounds(L.featureGroup(list.map(function (c) { return markers[c.id]; })).getBounds().pad(0.25), { maxZoom: 6 });
+    }
+    paintActive();
+  }
+
+  function select(id, fly) {
+    var c = cafes.find(function (x) { return x.id === id; });
+    if (!c) return;
+    state.selected = id;
+    var since = c.opened_year ? c.opened_year + '년 개업 · ' + (thisYear - c.opened_year) + '년째' : '';
+    var src = c.source_url && /^https?:\/\//.test(c.source_url)
+      ? '<a class="small" href="' + esc(c.source_url) + '" target="_blank" rel="noopener noreferrer">출처 보기</a>' : '';
+    detailEl.innerHTML =
+      (c.image_path ? '<img class="img-fluid rounded-4 mb-3" src="' + esc(c.image_path) + '" alt="' + esc(c.name) + '">' : '') +
+      '<div class="mb-2">' + (c.category ? '<span class="chip">' + esc(c.category) + '</span>' : '') + '</div>' +
+      '<h4 class="fw-bold mb-1">' + esc(c.name) + '</h4>' +
+      '<div class="text-muted mb-2">' + esc(c.city) + ', ' + esc(c.country) + (since ? ' · ' + since : '') + '</div>' +
+      (c.signature ? '<div class="mb-2"><i class="bi bi-cup-hot me-1 text-caramel"></i><strong>' + esc(c.signature) + '</strong></div>' : '') +
+      '<p class="mb-2" style="white-space:pre-wrap">' + esc(c.description) + '</p>' + src;
+    if (fly) map.flyTo([c.lat, c.lng], 13, { duration: 1 });
+    paintActive();
+  }
+
+  var cats = [];
+  cafes.forEach(function (c) { if (c.category && cats.indexOf(c.category) === -1) cats.push(c.category); });
+  function paintCats() {
+    catsEl.innerHTML = ['전체'].concat(cats).map(function (name) {
+      var on = (name === '전체' && !state.cat) || name === state.cat;
+      return '<button type="button" class="btn btn-sm ' + (on ? 'btn-caramel' : 'btn-outline-roast') + '" data-cat="' + esc(name) + '">' + esc(name) + '</button>';
+    }).join('');
+  }
+
+  catsEl.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-cat]');
+    if (!b) return;
+    state.cat = b.getAttribute('data-cat') === '전체' ? '' : b.getAttribute('data-cat');
+    paintCats(); render(true);
+  });
+  listEl.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-id]');
+    if (b) select(Number(b.getAttribute('data-id')), true);
+  });
+  document.getElementById('q').addEventListener('input', function (e) {
+    state.q = e.target.value; render(true);
+  });
+
+  paintCats();
+  render(true);
+})();
+</script>
+<%- include('partials/footer') %>
