@@ -1,0 +1,143 @@
+<%- include('../partials/header') %>
+<% const roast = { light: '라이트', medium: '미디엄', dark: '다크' };
+   const btn = function (n) { return tab === n ? 'active' : ''; };
+   const pane = function (n) { return tab === n ? 'show active' : ''; }; %>
+<div class="container py-5">
+  <h2 class="section-title mb-3">관리자</h2>
+  <% if (msg) { %><div class="alert alert-<%= isErr ? 'danger' : 'success' %> py-2"><%= msg %></div><% } %>
+
+  <div class="row g-3 mb-4">
+    <% [['회원', counts.users], ['레시피', counts.recipes], ['댓글', counts.comments], ['재현 결과', counts.trials], ['지도 카페', counts.cafes]].forEach(function(s) { %>
+      <div class="col-6 col-md"><div class="stat-card"><div class="num"><%= s[1] %></div><div class="label"><%= s[0] %></div></div></div>
+    <% }); %>
+  </div>
+
+  <ul class="nav nav-pills admin-pills mb-3 gap-1">
+    <li class="nav-item"><button class="nav-link <%= btn('users') %>" data-bs-toggle="pill" data-bs-target="#t-users" type="button">회원</button></li>
+    <li class="nav-item"><button class="nav-link <%= btn('beans') %>" data-bs-toggle="pill" data-bs-target="#t-beans" type="button">원두</button></li>
+    <li class="nav-item"><button class="nav-link <%= btn('methods') %>" data-bs-toggle="pill" data-bs-target="#t-methods" type="button">추출 방식·진단 기준</button></li>
+    <li class="nav-item"><button class="nav-link <%= btn('cafes') %>" data-bs-toggle="pill" data-bs-target="#t-cafes" type="button">커피 지도</button></li>
+  </ul>
+
+  <div class="tab-content">
+    <!-- 회원 -->
+    <div class="tab-pane fade <%= pane('users') %>" id="t-users">
+      <div class="form-card">
+        <div class="table-responsive">
+        <table class="table mb-0 align-middle">
+          <thead class="table-light"><tr><th>아이디</th><th>닉네임</th><th>이메일</th><th>레시피</th><th>가입일</th><th style="width:210px">역할</th></tr></thead>
+          <tbody>
+          <% users.forEach(function(u) { %>
+            <tr>
+              <td><%= u.username %></td><td><%= u.nickname %></td><td><%= u.email %></td><td><%= u.recipe_count %></td>
+              <td><%= new Date(u.created_at).toLocaleDateString('ko-KR') %></td>
+              <td>
+                <% if (u.id === user.id) { %><span class="badge bg-danger">관리자 (나)</span>
+                <% } else { %>
+                  <form class="d-flex gap-1" method="post" action="/admin/users/<%= u.id %>/role">
+                    <select class="form-select form-select-sm" name="role">
+                      <option value="user" <%= u.role === 'user' ? 'selected' : '' %>>일반</option>
+                      <option value="admin" <%= u.role === 'admin' ? 'selected' : '' %>>관리자</option>
+                    </select>
+                    <button class="btn btn-sm btn-outline-roast">변경</button>
+                  </form>
+                <% } %>
+              </td>
+            </tr>
+          <% }); %>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 원두 -->
+    <div class="tab-pane fade <%= pane('beans') %>" id="t-beans">
+      <div class="form-card p-3 mb-3">
+        <form class="row g-2" method="post" action="/admin/beans">
+          <div class="col-md-3"><input class="form-control" name="name" placeholder="원두 이름" required></div>
+          <div class="col-md-2"><input class="form-control" name="origin" placeholder="원산지" required></div>
+          <div class="col-md-2"><select class="form-select" name="roast_level">
+            <option value="light">라이트</option><option value="medium" selected>미디엄</option><option value="dark">다크</option></select></div>
+          <div class="col-md-3"><input class="form-control" name="process" placeholder="가공 방식 (선택)"></div>
+          <div class="col-md-2 d-grid"><button class="btn btn-caramel">원두 추가</button></div>
+        </form>
+      </div>
+      <div class="form-card"><table class="table mb-0 align-middle">
+        <thead class="table-light"><tr><th>이름</th><th>원산지</th><th>로스팅</th><th>가공</th><th>사용</th><th style="width:90px"></th></tr></thead>
+        <tbody>
+        <% beans.forEach(function(b) { %>
+          <tr><td><%= b.name %></td><td><%= b.origin %></td><td><%= roast[b.roast_level] %></td><td><%= b.process || '-' %></td>
+            <td><%= b.used %>개</td>
+            <td><% if (b.used === 0) { %>
+              <form method="post" action="/admin/beans/<%= b.id %>/delete" onsubmit="return confirm('삭제할까요?')"><button class="btn btn-sm btn-outline-danger">삭제</button></form>
+            <% } else { %><span class="text-muted small">사용 중</span><% } %></td></tr>
+        <% }); %>
+        </tbody></table></div>
+    </div>
+
+    <!-- 추출 방식 -->
+    <div class="tab-pane fade <%= pane('methods') %>" id="t-methods">
+      <div class="alert alert-light border small">여기서 고친 기준 범위를 진단 엔진이 바로 사용해요. 물 온도는 최소·최대를 모두 비우면 온도 점검을 건너뛰어요.</div>
+      <div class="form-card p-4 mb-3">
+        <% methods.forEach(function(m) { %>
+          <form class="row g-2 align-items-end mb-3 pb-3 border-bottom" method="post" action="/admin/methods/<%= m.id %>">
+            <div class="col-12"><strong><%= m.name %></strong> <span class="text-muted small">· 레시피 <%= m.used %>개</span></div>
+            <div class="col-6 col-md-1"><label class="form-label small mb-0">비율 최소</label><input type="number" step="0.1" class="form-control form-control-sm" name="ratio_min" value="<%= m.ratio_min %>" required></div>
+            <div class="col-6 col-md-1"><label class="form-label small mb-0">비율 최대</label><input type="number" step="0.1" class="form-control form-control-sm" name="ratio_max" value="<%= m.ratio_max %>" required></div>
+            <div class="col-6 col-md-1"><label class="form-label small mb-0">온도 최소</label><input type="number" class="form-control form-control-sm" name="temp_min" value="<%= m.temp_min !== null ? m.temp_min : '' %>"></div>
+            <div class="col-6 col-md-1"><label class="form-label small mb-0">온도 최대</label><input type="number" class="form-control form-control-sm" name="temp_max" value="<%= m.temp_max !== null ? m.temp_max : '' %>"></div>
+            <div class="col-6 col-md-1"><label class="form-label small mb-0">시간 최소(분)</label><input type="number" class="form-control form-control-sm" name="time_min" value="<%= Math.round(m.time_min_sec / 60) %>" required></div>
+            <div class="col-6 col-md-1"><label class="form-label small mb-0">시간 최대(분)</label><input type="number" class="form-control form-control-sm" name="time_max" value="<%= Math.round(m.time_max_sec / 60) %>" required></div>
+            <div class="col-12 col-md-4"><label class="form-label small mb-0">팁</label><input class="form-control form-control-sm" name="tip" value="<%= m.tip || '' %>"></div>
+            <div class="col-12 col-md-2 d-grid"><button class="btn btn-sm btn-caramel">저장</button></div>
+          </form>
+        <% }); %>
+      </div>
+      <div class="form-card p-4">
+        <h6 class="fw-bold">새 추출 방식 추가</h6>
+        <form class="row g-2 align-items-end" method="post" action="/admin/methods">
+          <div class="col-md-2"><label class="form-label small mb-0">이름</label><input class="form-control form-control-sm" name="name" required></div>
+          <div class="col-6 col-md-1"><label class="form-label small mb-0">비율 최소</label><input type="number" step="0.1" class="form-control form-control-sm" name="ratio_min" required></div>
+          <div class="col-6 col-md-1"><label class="form-label small mb-0">비율 최대</label><input type="number" step="0.1" class="form-control form-control-sm" name="ratio_max" required></div>
+          <div class="col-6 col-md-1"><label class="form-label small mb-0">온도 최소</label><input type="number" class="form-control form-control-sm" name="temp_min"></div>
+          <div class="col-6 col-md-1"><label class="form-label small mb-0">온도 최대</label><input type="number" class="form-control form-control-sm" name="temp_max"></div>
+          <div class="col-6 col-md-1"><label class="form-label small mb-0">시간 최소(분)</label><input type="number" class="form-control form-control-sm" name="time_min" required></div>
+          <div class="col-6 col-md-1"><label class="form-label small mb-0">시간 최대(분)</label><input type="number" class="form-control form-control-sm" name="time_max" required></div>
+          <div class="col-12 col-md-3"><label class="form-label small mb-0">팁</label><input class="form-control form-control-sm" name="tip"></div>
+          <div class="col-12 col-md-1 d-grid"><button class="btn btn-sm btn-caramel">추가</button></div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 카페 -->
+    <div class="tab-pane fade <%= pane('cafes') %>" id="t-cafes">
+      <div class="form-card p-4 mb-3">
+        <h6 class="fw-bold">카페 추가</h6>
+        <form class="row g-2" method="post" action="/admin/cafes">
+          <div class="col-md-4"><input class="form-control" name="name" placeholder="이름" required></div>
+          <div class="col-md-2"><input class="form-control" name="city" placeholder="도시" required></div>
+          <div class="col-md-2"><input class="form-control" name="country" placeholder="나라" required></div>
+          <div class="col-6 col-md-2"><input type="number" step="any" class="form-control" name="lat" placeholder="위도" required></div>
+          <div class="col-6 col-md-2"><input type="number" step="any" class="form-control" name="lng" placeholder="경도" required></div>
+          <div class="col-6 col-md-2"><input type="number" class="form-control" name="opened_year" placeholder="개업 연도"></div>
+          <div class="col-6 col-md-3"><input class="form-control" name="category" placeholder="분류 (예: 역사 카페)"></div>
+          <div class="col-md-7"><input class="form-control" name="signature" placeholder="대표 한 줄"></div>
+          <div class="col-12"><textarea class="form-control" name="description" rows="3" placeholder="설명 (확인한 내용만 적어 주세요)"></textarea></div>
+          <div class="col-md-9"><input class="form-control" name="source_url" placeholder="출처 주소 (https://...)"></div>
+          <div class="col-md-3 d-grid"><button class="btn btn-caramel">추가</button></div>
+        </form>
+        <div class="form-text">좌표는 구글 지도에서 장소를 우클릭하면 맨 위에 나오는 숫자(위도, 경도)를 쓰면 돼요.</div>
+      </div>
+      <div class="form-card"><table class="table mb-0 align-middle">
+        <thead class="table-light"><tr><th>이름</th><th>도시</th><th>나라</th><th>연도</th><th>분류</th><th style="width:90px"></th></tr></thead>
+        <tbody>
+        <% cafes.forEach(function(c) { %>
+          <tr><td><%= c.name %></td><td><%= c.city %></td><td><%= c.country %></td><td><%= c.opened_year || '-' %></td><td><%= c.category || '-' %></td>
+            <td><form method="post" action="/admin/cafes/<%= c.id %>/delete" onsubmit="return confirm('삭제할까요?')"><button class="btn btn-sm btn-outline-danger">삭제</button></form></td></tr>
+        <% }); %>
+        </tbody></table></div>
+    </div>
+  </div>
+</div>
+<%- include('../partials/footer') %>

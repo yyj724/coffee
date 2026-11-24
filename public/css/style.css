@@ -138,3 +138,7 @@ h1, h2, h3, h4, .brand-font { font-family: 'Noto Serif KR', 'Noto Sans KR', seri
   box-shadow: 0 4px 12px rgba(43,29,22,.35); transition: transform .15s, background .15s;
 }
 .cafe-pin.active { background: var(--espresso); transform: scale(1.25); }
+
+/* 관리자 탭 */
+.admin-pills .nav-link { color: var(--roast); font-weight: 600; background: #fff; }
+.admin-pills .nav-link.active { background: var(--caramel); color: #fff; }
